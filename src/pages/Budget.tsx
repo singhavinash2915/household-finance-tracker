@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { PageId } from '../App'
 import { MonthlyFillGrid } from '../components/MonthlyFillGrid'
 import {
@@ -16,13 +15,7 @@ import {
 } from '../components/ui'
 import { BUCKET_LABEL, TARGET_SPLIT } from '../lib/finance'
 import { formatINR, formatPercent, monthLabel, ordinal, uid } from '../lib/format'
-import {
-  BUCKETS,
-  actualBreakdown,
-  budgetFor,
-  monthMetrics,
-  pendingMonthlyItems,
-} from '../lib/selectors'
+import { BUCKETS, actualBreakdown, budgetFor, monthMetrics } from '../lib/selectors'
 import { useStore } from '../lib/store'
 import type { Bucket, BudgetItem, EntryMode, MonthBudget } from '../lib/types'
 
@@ -42,8 +35,6 @@ export function Budget({ goTo }: { goTo: (p: PageId) => void }) {
   const { data, update, month, notify } = useStore()
   const m = monthMetrics(data, month)
   const budget = budgetFor(data, month)
-  const pending = pendingMonthlyItems(data, month)
-  const [showQuickFill, setShowQuickFill] = useState(true)
 
   /** All writes go through here so an untouched month materialises on first edit. */
   function writeBudget(fn: (b: MonthBudget) => MonthBudget) {
@@ -106,20 +97,7 @@ export function Budget({ goTo }: { goTo: (p: PageId) => void }) {
       />
 
       {/* Quick fill: the whole month's manual work, in one place. */}
-      {pending.length > 0 && showQuickFill && (
-        <Card
-          title={`${pending.length} monthly total${pending.length === 1 ? '' : 's'} to enter`}
-          subtitle="This is the only typing this month needs. Grab these from your bank and card statements."
-          right={
-            <Button variant="ghost" size="sm" onClick={() => setShowQuickFill(false)}>
-              Hide
-            </Button>
-          }
-          className="border-sky-200 bg-sky-50/40"
-        >
-          <MonthlyFillGrid />
-        </Card>
-      )}
+      <MonthlyFillGrid dismissible />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="bg-slate-900 text-white" padded>

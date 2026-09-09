@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Badge, MoneyInput } from './ui'
+import { Badge, Button, Card, MoneyInput } from './ui'
 import { formatINR, monthLabel } from '../lib/format'
 import { BUCKETS, budgetFor } from '../lib/selectors'
 import { useStore } from '../lib/store'
@@ -12,7 +12,15 @@ import { useStore } from '../lib/store'
  * Deriving it from "still empty" would unmount the very field being typed
  * into as soon as the first digit landed, which loses everything after it.
  */
-export function MonthlyFillGrid({ limit }: { limit?: number }) {
+export function MonthlyFillGrid({
+  limit,
+  onOpenBudget,
+  dismissible = false,
+}: {
+  limit?: number
+  onOpenBudget?: () => void
+  dismissible?: boolean
+}) {
   const { data, update, month } = useStore()
   const budget = budgetFor(data, month)
 
@@ -36,7 +44,8 @@ export function MonthlyFillGrid({ limit }: { limit?: number }) {
     .filter((i): i is NonNullable<typeof i> => Boolean(i))
     .slice(0, limit)
 
-  if (rows.length === 0) return null
+  const [hidden, setHidden] = useState(false)
+  if (rows.length === 0 || hidden) return null
 
   const entries = data.monthlyEntries[month] ?? {}
   const remaining = rows.filter((i) => (entries[i.id] ?? null) === null).length
@@ -51,7 +60,33 @@ export function MonthlyFillGrid({ limit }: { limit?: number }) {
   }
 
   return (
-    <div>
+    <Card
+      title={
+        remaining > 0
+          ? `Enter ${remaining} monthly total${remaining === 1 ? '' : 's'}`
+          : `${monthLabel(month)} totals entered`
+      }
+      subtitle={
+        remaining > 0
+          ? 'The only numbers this month actually needs from you — read them off your statements.'
+          : 'Nothing left to type. These stay here until the month changes, in case you want to adjust them.'
+      }
+      className={remaining > 0 ? 'border-sky-200 bg-sky-50/40' : ''}
+      right={
+        <>
+          {onOpenBudget && (
+            <Button variant="secondary" size="sm" onClick={onOpenBudget}>
+              Open Budget
+            </Button>
+          )}
+          {dismissible && (
+            <Button variant="ghost" size="sm" onClick={() => setHidden(true)}>
+              Hide
+            </Button>
+          )}
+        </>
+      }
+    >
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {rows.map((item) => {
           const value = entries[item.id] ?? null
@@ -84,11 +119,11 @@ export function MonthlyFillGrid({ limit }: { limit?: number }) {
         })}
       </div>
       {remaining === 0 && (
-        <p className="mt-3 flex items-center gap-2 text-[12px] text-slate-500">
+        <p className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-slate-500">
           <Badge tone="green">All entered</Badge>
           {formatINR(rows.reduce((s, i) => s + (entries[i.id] ?? 0), 0))} recorded for {monthLabel(month)}.
         </p>
       )}
-    </div>
+    </Card>
   )
 }

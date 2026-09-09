@@ -34,14 +34,13 @@ import {
   savingsRateTone,
 } from '../lib/finance'
 import { compactINR, formatINR, formatPercent, monthLabel, shortMonthLabel } from '../lib/format'
-import { BUCKETS, monthChecklist, monthMetrics, pendingMonthlyItems } from '../lib/selectors'
+import { BUCKETS, monthChecklist, monthMetrics } from '../lib/selectors'
 import { useStore } from '../lib/store'
 
 export function Dashboard({ goTo }: { goTo: (p: PageId) => void }) {
   const { data, month } = useStore()
   const m = monthMetrics(data, month)
   const checklist = monthChecklist(data, month)
-  const pending = pendingMonthlyItems(data, month)
   const outstanding = checklist.filter((c) => !c.done)
   const doneCount = checklist.length - outstanding.length
 
@@ -113,19 +112,7 @@ export function Dashboard({ goTo }: { goTo: (p: PageId) => void }) {
         </ul>
       </Card>
 
-      {pending.length > 0 && (
-        <Card
-          title={`Enter ${pending.length} monthly total${pending.length === 1 ? '' : 's'}`}
-          subtitle="The only numbers this month actually needs from you."
-          right={
-            <Button variant="secondary" size="sm" onClick={() => goTo('budget')}>
-              Open Budget
-            </Button>
-          }
-        >
-          <MonthlyFillGrid limit={6} />
-        </Card>
-      )}
+      <MonthlyFillGrid limit={6} onOpenBudget={() => goTo('budget')} />
 
       <IncomeCard />
 
