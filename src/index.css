@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* Stop the whole page rubber-banding sideways on iOS. */
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-slate-50 font-sans antialiased;
+    /* Momentum scrolling without the grey tap flash on iOS. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /*
+   * iOS Safari zooms the page when a focused input's font is under 16px.
+   * Desktop keeps the tighter 14px via the sm: breakpoint below.
+   */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 14px;
+    }
+  }
+
+  /* Right-aligned rupee figures read better without spinner arrows. */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  /* Date inputs stay left-aligned and full-height on iOS. */
+  input[type='date'],
+  input[type='month'] {
+    min-height: 2.5rem;
+  }
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+  /* Room for the fixed bottom nav plus the home indicator. */
+  .pb-nav {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+}
