@@ -15,7 +15,7 @@ import { formatINR, monthLabel } from '../lib/format'
 import { investibleSurplus, monthMetrics, netWorthFor } from '../lib/selectors'
 import { useStore } from '../lib/store'
 
-export function EmergencyFund({ goTo }: { goTo: (p: PageId) => void }) {
+export function EmergencyFund({ goTo, embedded = false }: { goTo: (p: PageId) => void; embedded?: boolean }) {
   const { data, update, month, notify } = useStore()
   const m = monthMetrics(data, month)
   const ef = data.emergencyFund
@@ -55,10 +55,12 @@ export function EmergencyFund({ goTo }: { goTo: (p: PageId) => void }) {
 
   return (
     <div className="space-y-5">
+      {!embedded && (
       <PageHeader
         title="Emergency Fund"
         description="How long your liquid savings would cover essential expenses if income stopped."
       />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
@@ -113,7 +115,7 @@ export function EmergencyFund({ goTo }: { goTo: (p: PageId) => void }) {
             <p className="mb-1.5 text-[13px] font-medium text-slate-600">Monthly essential expenses</p>
             <button
               type="button"
-              onClick={() => goTo('budget')}
+              onClick={() => goTo('month')}
               className="w-full rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-right text-sm font-semibold tabular-nums text-slate-900 transition hover:border-sky-400 hover:text-sky-700"
             >
               {formatINR(essentials)}

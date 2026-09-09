@@ -13,35 +13,27 @@ type Spec = [name: string, budgeted: number, mode: EntryMode, autoDay?: number]
 // Fixed, predictable outgoings are `auto` — they never need touching again.
 // Variable-but-lumpy spend is `monthly` — one number off the statement.
 // Only categories worth itemising are `detailed`.
+// A short starter list beats a complete one: a wall of 20+ rows is the
+// fastest way to lose interest. Fixed outgoings are `auto` so they never
+// need touching; the rest are one number a month. Add your own as needed.
 const NEEDS_SPEC: Spec[] = [
-  ['Rent/Home Loan EMI', 45000, 'auto', 5],
+  ['Home — Rent / EMI', 45000, 'auto', 5],
   ['Groceries & Household', 18000, 'monthly'],
-  ['Electricity/Gas/Wifi/Phone', 6000, 'monthly'],
+  ['Utilities & Phone', 6000, 'monthly'],
   ['Transport & Fuel', 9000, 'monthly'],
-  ['Insurance Premiums', 7000, 'auto', 7],
-  ['School Fees/Child Care', 15000, 'auto', 6],
-  ['Domestic Help', 5000, 'auto', 1],
-  ['Other EMIs', 12000, 'auto', 14],
+  ['Insurance & School Fees', 22000, 'auto', 6],
 ]
 
 const WANTS_SPEC: Spec[] = [
-  ['Dining Out & Food Delivery', 9000, 'detailed'],
-  ['Shopping', 12000, 'detailed'],
-  ['Entertainment & OTT', 1500, 'monthly'],
-  ['Travel & Vacations', 10000, 'monthly'],
-  ['Subscriptions', 2000, 'auto', 18],
-  ['Personal Care', 4000, 'monthly'],
-  ['Gifts & Social', 5000, 'monthly'],
+  ['Eating Out', 12000, 'detailed'],
+  ['Shopping', 18000, 'monthly'],
+  ['Fun & Subscriptions', 15000, 'monthly'],
 ]
 
 const SAVINGS_SPEC: Spec[] = [
-  ['EPF (auto)', 21600, 'auto', 1],
-  ['PPF', 12500, 'auto', 10],
-  ['NPS Voluntary', 5000, 'auto', 19],
-  ['Mutual Fund SIP/ELSS', 25000, 'auto', 10],
-  ['Direct Stocks', 8000, 'monthly'],
-  ['Emergency Fund Top-up', 5000, 'auto', 28],
-  ['Gold/SGB', 5000, 'auto', 25],
+  ['EPF (from salary)', 18000, 'auto', 1],
+  ['SIP / Mutual Funds', 30000, 'auto', 10],
+  ['Other Savings', 15000, 'monthly'],
 ]
 
 export const DEFAULT_NEEDS = NEEDS_SPEC.map((s) => s[0])
@@ -119,14 +111,12 @@ function agedSnapshot(base: NetWorthSnapshot, monthsBack: number): NetWorthSnaps
 function seedExpenses(month: string, jitter: number): Expense[] {
   const day = (d: number) => `${month}-${String(d).padStart(2, '0')}`
   const rows: Array<[number, string, Expense['paidBy'], number, string]> = [
-    [4, 'Dining Out & Food Delivery', 'person1', 1240, 'Swiggy order'],
-    [8, 'Shopping', 'person2', 3499 + jitter, 'Myntra — clothing'],
-    [11, 'Dining Out & Food Delivery', 'person2', 2180, 'Weekend lunch out'],
-    [13, 'Shopping', 'person1', 5290, 'Amazon — home items'],
-    [17, 'Dining Out & Food Delivery', 'joint', 1650 + jitter, 'Zomato'],
-    [21, 'Shopping', 'person2', 2450, 'Reliance Trends'],
-    [23, 'Dining Out & Food Delivery', 'person1', 890, 'Coffee and snacks'],
-    [27, 'Dining Out & Food Delivery', 'joint', 3120, 'Dinner — family'],
+    [4, 'Eating Out', 'person1', 1240, 'Swiggy order'],
+    [8, 'Eating Out', 'person1', 1950, 'Dinner out'],
+    [21, 'Eating Out', 'person2', 2450, 'Cafe with friends'],
+    [11, 'Eating Out', 'person2', 2180, 'Weekend lunch out'],
+    [17, 'Eating Out', 'joint', 1650 + jitter, 'Zomato'],
+    [27, 'Eating Out', 'person1', 2330, 'Dinner — family'],
   ]
   return rows.map(([d, category, paidBy, amount, notes]) => ({
     id: uid(),
@@ -139,16 +129,18 @@ function seedExpenses(month: string, jitter: number): Expense[] {
 }
 
 /** Typed-once-a-month totals for the `monthly` categories. */
-function seedMonthlyEntries(budget: MonthBudget, jitter: number): Record<string, number> {
+function seedMonthlyEntries(
+  budget: MonthBudget,
+  jitter: number,
+  otherSavings: number,
+): Record<string, number> {
   const values: Record<string, number> = {
     'Groceries & Household': 17300,
-    'Electricity/Gas/Wifi/Phone': 6100,
+    'Utilities & Phone': 6100,
     'Transport & Fuel': 8600,
-    'Entertainment & OTT': 1500,
-    'Travel & Vacations': 0,
-    'Personal Care': 3200,
-    'Gifts & Social': 4600,
-    'Direct Stocks': 8000,
+    Shopping: 16400,
+    'Fun & Subscriptions': 14200,
+    'Other Savings': otherSavings,
   }
   const out: Record<string, number> = {}
   for (const bucket of ['needs', 'wants', 'savings'] as const) {
@@ -178,9 +170,39 @@ export function seedData(): AppData {
     // Same ids across months so a category keeps its identity over time.
     const budget = carryForward(template)
     budgets[m] = budget
-    monthlyEntries[m] = seedMonthlyEntries(budget, jitter)
+    monthlyEntries[m] = seedMonthlyEntries(budget, jitter, 15600)
     expenses = expenses.concat(seedExpenses(m, jitter))
     netWorth[m] = agedSnapshot(baseNetWorth, months.length - 1 - idx)
+  })
+
+  // Make the example add up: whatever income is not spent or auto-saved is
+  // shown as landing in Other Savings, so the demo never reads as a household
+  // haemorrhaging money it cannot account for.
+  const salary = 120000 + 85000
+  months.forEach((m) => {
+    const budget = budgets[m]
+    const entries = monthlyEntries[m]
+    const extra = m === thisMonth ? 32000 : 0
+
+    const spendOf = (items: BudgetItem[]) =>
+      items.reduce((sum, i) => {
+        if (i.mode === 'auto') return sum + (i.autoAmount ?? i.budgeted)
+        if (i.mode === 'monthly') return sum + (entries[i.id] ?? 0)
+        return (
+          sum +
+          expenses
+            .filter((e) => e.date.startsWith(m) && e.category === i.name)
+            .reduce((s2, e) => s2 + e.amount, 0)
+        )
+      }, 0)
+
+    const other = budget.savings.find((i) => i.name === 'Other Savings')
+    if (!other) return
+    const spent = spendOf(budget.needs) + spendOf(budget.wants)
+    const autoSaved = budget.savings
+      .filter((i) => i.mode === 'auto')
+      .reduce((sum, i) => sum + (i.autoAmount ?? i.budgeted), 0)
+    entries[other.id] = Math.max(0, salary + extra - spent - autoSaved)
   })
 
   return {
@@ -188,17 +210,12 @@ export function seedData(): AppData {
     isSeedData: true,
     income: {
       person1Name: 'Avinash',
-      person1: 145000,
+      person1: 120000,
       person2Name: 'Amrita',
-      person2: 110000,
+      person2: 85000,
     },
     otherIncome: {
-      [months[1]]: [
-        { id: uid(), label: 'Freelance project', amount: 45000, who: 'person1' },
-      ],
-      [thisMonth]: [
-        { id: uid(), label: 'Freelance — web build', amount: 32000, who: 'person1' },
-      ],
+      [thisMonth]: [{ id: uid(), label: 'Freelance — web build', amount: 32000, who: 'person1' }],
     },
     budgets,
     monthlyEntries,

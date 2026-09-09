@@ -26,7 +26,7 @@ import type { NetWorthLine, NetWorthSnapshot } from '../lib/types'
 
 type Side = 'assets' | 'liabilities'
 
-export function NetWorth({ goTo }: { goTo: (p: PageId) => void }) {
+export function NetWorth({ goTo, embedded = false }: { goTo: (p: PageId) => void; embedded?: boolean }) {
   const { data, update, month, notify } = useStore()
   const snapshot = netWorthFor(data, month)
   const totals = netWorthTotals(snapshot)
@@ -112,6 +112,7 @@ export function NetWorth({ goTo }: { goTo: (p: PageId) => void }) {
 
   return (
     <div className="space-y-5">
+      {!embedded && (
       <PageHeader
         title="Net Worth"
         description="One snapshot per month. A new month starts from your last one, with this month's investment contributions already added."
@@ -121,6 +122,7 @@ export function NetWorth({ goTo }: { goTo: (p: PageId) => void }) {
           </Button>
         }
       />
+      )}
 
       {!saved && (
         <ActionNote
@@ -218,7 +220,7 @@ export function NetWorth({ goTo }: { goTo: (p: PageId) => void }) {
         <ActionNote
           tone="sky"
           action={
-            <Button variant="secondary" size="sm" onClick={() => goTo('emergency')}>
+            <Button variant="secondary" size="sm" onClick={() => goTo('wealth')}>
               Emergency Fund
             </Button>
           }

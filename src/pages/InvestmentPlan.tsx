@@ -54,7 +54,7 @@ const INSTRUMENTS: Array<{ key: InstrumentKey; label: string; note: string; colo
   },
 ]
 
-export function InvestmentPlan({ goTo }: { goTo: (p: PageId) => void }) {
+export function InvestmentPlan({ goTo, embedded = false }: { goTo: (p: PageId) => void; embedded?: boolean }) {
   const { data, update, month, notify } = useStore()
   const m = monthMetrics(data, month)
 
@@ -114,6 +114,7 @@ export function InvestmentPlan({ goTo }: { goTo: (p: PageId) => void }) {
 
   return (
     <div className="space-y-5">
+      {!embedded && (
       <PageHeader
         title="Investment Plan"
         description="Split your monthly investible surplus across instruments. Amounts recompute as you move the sliders."
@@ -123,6 +124,7 @@ export function InvestmentPlan({ goTo }: { goTo: (p: PageId) => void }) {
           </Button>
         }
       />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
@@ -133,7 +135,7 @@ export function InvestmentPlan({ goTo }: { goTo: (p: PageId) => void }) {
               ? `${formatINR(m.actual.savings)} saved less ${formatINR(locked)} deducted at source`
               : `Savings actual for ${monthLabel(month)}`
           }
-          onClick={() => goTo('budget')}
+          onClick={() => goTo('month')}
         />
         <StatCard
           label="Allocated"
@@ -148,7 +150,7 @@ export function InvestmentPlan({ goTo }: { goTo: (p: PageId) => void }) {
           tone={goalsSIP > surplus ? 'red' : 'green'}
           badge={goalsSIP > surplus ? 'Short' : 'Covered'}
           hint={goalsSIP > surplus ? `${formatINR(goalsSIP - surplus)} more than the surplus` : 'Within your surplus'}
-          onClick={() => goTo('goals')}
+          onClick={() => goTo('wealth')}
         />
       </div>
 

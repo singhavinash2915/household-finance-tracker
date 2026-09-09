@@ -228,7 +228,7 @@ export function Expenses({ goTo }: { goTo: (p: PageId) => void }) {
         <ActionNote
           tone="amber"
           action={
-            <Button variant="secondary" size="sm" onClick={() => goTo('budget')}>
+            <Button variant="secondary" size="sm" onClick={() => goTo('month')}>
               Open Budget
             </Button>
           }

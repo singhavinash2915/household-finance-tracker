@@ -16,7 +16,7 @@ import { investibleSurplus } from '../lib/selectors'
 import { useStore } from '../lib/store'
 import type { Goal } from '../lib/types'
 
-export function Goals({ goTo }: { goTo: (p: PageId) => void }) {
+export function Goals({ goTo, embedded = false }: { goTo: (p: PageId) => void; embedded?: boolean }) {
   const { data, update, month } = useStore()
   const surplus = investibleSurplus(data, month)
 
@@ -42,6 +42,7 @@ export function Goals({ goTo }: { goTo: (p: PageId) => void }) {
 
   return (
     <div className="space-y-5">
+      {!embedded && (
       <PageHeader
         title="Goals & SIP"
         description="Work backwards from each target to the monthly SIP it needs, assuming contributions at the start of each month."
@@ -51,6 +52,7 @@ export function Goals({ goTo }: { goTo: (p: PageId) => void }) {
           </Button>
         }
       />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
@@ -62,7 +64,7 @@ export function Goals({ goTo }: { goTo: (p: PageId) => void }) {
           label="Monthly investible surplus"
           value={formatINR(surplus)}
           hint="Savings actual from the Budget page"
-          onClick={() => goTo('investments')}
+          onClick={() => goTo('wealth')}
         />
         <StatCard
           label={over ? 'Gap' : 'Headroom'}
@@ -91,7 +93,7 @@ export function Goals({ goTo }: { goTo: (p: PageId) => void }) {
         <ActionNote
           tone="rose"
           action={
-            <Button variant="secondary" size="sm" onClick={() => goTo('budget')}>
+            <Button variant="secondary" size="sm" onClick={() => goTo('month')}>
               Raise savings
             </Button>
           }

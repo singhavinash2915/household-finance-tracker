@@ -57,9 +57,9 @@ export function requiredSIP(fv: number, years: number, annualReturn: number): nu
 export const INSTRUMENT_CATEGORY: Record<InstrumentKey, string> = {
   ppf: 'PPF',
   nps: 'NPS Voluntary',
-  mutualFunds: 'Mutual Fund SIP/ELSS',
+  mutualFunds: 'SIP / Mutual Funds',
   stocks: 'Direct Stocks',
-  emergencyTopUp: 'Emergency Fund Top-up',
+  emergencyTopUp: 'Other Savings',
   gold: 'Gold/SGB',
 }
 
@@ -68,12 +68,15 @@ export const INSTRUMENT_CATEGORY: Record<InstrumentKey, string> = {
  * Used by the "roll forward + add contributions" action on Net Worth.
  */
 export const CONTRIBUTION_TO_ASSET: Record<string, string> = {
+  'EPF (from salary)': 'EPF Balance',
   'EPF (auto)': 'EPF Balance',
   PPF: 'PPF Balance',
   'NPS Voluntary': 'NPS Corpus',
+  'SIP / Mutual Funds': 'Mutual Funds',
   'Mutual Fund SIP/ELSS': 'Mutual Funds',
   'Direct Stocks': 'Direct Stocks',
   'Gold/SGB': 'Gold/SGB',
+  'Other Savings': 'Savings Bank',
   'Emergency Fund Top-up': 'Savings Bank',
 }
 
