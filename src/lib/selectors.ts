@@ -251,7 +251,10 @@ export function monthChecklist(data: AppData, month: string): ChecklistItem[] {
     {
       id: 'auto',
       label: 'Fixed items posted',
-      detail: `${autoCount} automatic categories counted — nothing to type`,
+      detail:
+        autoCount > 0
+          ? `${autoCount} automatic categories counted — nothing to type`
+          : 'Set fixed bills like rent and SIPs to Auto so they post themselves',
       done: autoCount > 0,
       page: 'budget',
     },

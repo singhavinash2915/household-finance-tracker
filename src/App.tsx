@@ -10,6 +10,7 @@ import { InvestmentPlan } from './pages/InvestmentPlan'
 import { NetWorth } from './pages/NetWorth'
 import { Settings } from './pages/Settings'
 import { StoreProvider, useStore } from './lib/store'
+import { clearData } from './lib/storage'
 import { monthChecklist } from './lib/selectors'
 
 export type PageId =
@@ -69,7 +70,7 @@ function isPageId(value: string): value is PageId {
 }
 
 function Shell() {
-  const { data, saving, storageBlocked, month, setMonth, toast } = useStore()
+  const { data, saving, storageBlocked, month, setMonth, toast, startFresh, notify } = useStore()
   // The hash keeps deep links working on GitHub Pages without a router.
   const [page, setPage] = useState<PageId>(() => {
     const fromHash = window.location.hash.replace('#', '')
@@ -190,9 +191,23 @@ function Shell() {
           )}
 
           {data.isSeedData && page !== 'settings' && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] leading-relaxed text-amber-900 sm:text-sm">
-              <span className="font-semibold">This is example data.</span> A sample dual-income household is pre-filled
-              so nothing looks empty. Edit any field to make it yours — this banner disappears once you do.
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] leading-relaxed text-amber-900 sm:text-sm">
+              <p className="min-w-0 flex-1">
+                <span className="font-semibold">This is example data.</span> A sample dual-income household is
+                pre-filled so nothing looks empty. Edit any field to make it yours, or clear it all out and start
+                from your own numbers.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  clearData()
+                  startFresh(true)
+                  notify('Example data cleared — the app is yours now')
+                }}
+                className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-2 text-[13px] font-medium text-amber-900 shadow-sm transition hover:bg-amber-50"
+              >
+                Clear example data
+              </button>
             </div>
           )}
 

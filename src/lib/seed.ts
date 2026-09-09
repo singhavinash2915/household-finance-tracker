@@ -228,3 +228,48 @@ export function seedData(): AppData {
     ],
   }
 }
+
+/**
+ * A genuinely blank slate: no income, no transactions, no snapshots, no goals.
+ * The category names survive as a starting skeleton with zero amounts — they
+ * are a template, not example data, and rebuilding them by hand is tedious.
+ */
+export function emptyData(): AppData {
+  const month = currentMonthKey()
+  const blank = (items: BudgetItem[]) =>
+    items.map((i) => ({ id: uid(), name: i.name, budgeted: 0, mode: 'monthly' as const }))
+  const template = defaultBudget()
+
+  return {
+    version: 2,
+    isSeedData: false,
+    income: { person1Name: 'Avinash', person1: 0, person2Name: 'Amrita', person2: 0 },
+    otherIncome: {},
+    budgets: {
+      [month]: {
+        needs: blank(template.needs),
+        wants: blank(template.wants),
+        savings: blank(template.savings),
+      },
+    },
+    monthlyEntries: {},
+    expenses: [],
+    netWorth: {},
+    closedMonths: [],
+    emergencyFund: {
+      targetMonths: 6,
+      currentBalance: 0,
+      trackFromNetWorth: false,
+      trackedAssets: [],
+    },
+    allocation: { ppf: 0, nps: 0, mutualFunds: 0, stocks: 0, emergencyTopUp: 0, gold: 0 },
+    goals: [],
+  }
+}
+
+/** Blank slate with the category list stripped out too. */
+export function bareData(): AppData {
+  const month = currentMonthKey()
+  const base = emptyData()
+  return { ...base, budgets: { [month]: { needs: [], wants: [], savings: [] } } }
+}

@@ -5,10 +5,10 @@ import { useStore } from '../lib/store'
 import type { AppData } from '../lib/types'
 
 export function Settings() {
-  const { data, replace, reset } = useStore()
+  const { data, replace, startFresh, loadExample } = useStore()
   const fileRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
-  const [confirming, setConfirming] = useState(false)
+  const [confirming, setConfirming] = useState<'fresh' | 'bare' | 'example' | null>(null)
 
   function onImport(file: File) {
     const reader = new FileReader()
@@ -90,30 +90,78 @@ export function Settings() {
         </p>
       </Card>
 
-      <Card title="Reset" subtitle="Clears this browser's saved data and reloads the example data set.">
-        {!confirming ? (
-          <Button variant="danger" onClick={() => setConfirming(true)}>
-            Reset all data
-          </Button>
+      <Card
+        title="Clear your data"
+        subtitle="Wipes this browser's saved data. Export a backup first if you might want it back."
+      >
+        {confirming === null ? (
+          <div className="flex flex-wrap gap-3">
+            <Button variant="danger" onClick={() => setConfirming('fresh')}>
+              Start fresh — clear everything
+            </Button>
+            <Button variant="secondary" onClick={() => setConfirming('bare')}>
+              Also remove the category list
+            </Button>
+            {!data.isSeedData && (
+              <Button variant="ghost" onClick={() => setConfirming('example')}>
+                Load example data
+              </Button>
+            )}
+          </div>
         ) : (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 p-4">
-            <p className="text-sm font-medium text-rose-900">
-              Reset everything? Your budgets, {counts.expenses} transactions, net worth snapshots and goals will be
-              deleted from this browser and replaced with the example data. This cannot be undone.
+          <div
+            className={`rounded-xl border p-4 ${
+              confirming === 'example' ? 'border-sky-200 bg-sky-50' : 'border-rose-200 bg-rose-50'
+            }`}
+          >
+            <p
+              className={`text-sm font-medium ${
+                confirming === 'example' ? 'text-sky-900' : 'text-rose-900'
+              }`}
+            >
+              {confirming === 'fresh' && (
+                <>
+                  Delete your income, {counts.expenses} transactions, {counts.months} budget month
+                  {counts.months === 1 ? '' : 's'}, {counts.snapshots} net worth snapshot
+                  {counts.snapshots === 1 ? '' : 's'} and {counts.goals} goal{counts.goals === 1 ? '' : 's'}? The
+                  category names stay behind with ₹0 against them so you have something to type into. This cannot be
+                  undone.
+                </>
+              )}
+              {confirming === 'bare' && (
+                <>
+                  Delete everything including the category list, leaving completely empty Needs, Wants and Savings
+                  tables? You will add your own categories from scratch. This cannot be undone.
+                </>
+              )}
+              {confirming === 'example' && (
+                <>Replace what is here with the example household, so you can explore the app?</>
+              )}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
-                variant="danger"
+                variant={confirming === 'example' ? 'primary' : 'danger'}
                 onClick={() => {
-                  clearData()
-                  reset()
-                  setConfirming(false)
-                  setMessage({ tone: 'ok', text: 'All data reset. The example data set has been restored.' })
+                  if (confirming === 'example') {
+                    loadExample()
+                    setMessage({ tone: 'ok', text: 'Example data loaded.' })
+                  } else {
+                    clearData()
+                    startFresh(confirming === 'fresh')
+                    setMessage({
+                      tone: 'ok',
+                      text:
+                        confirming === 'fresh'
+                          ? 'All data cleared. The category list is ready for your own numbers.'
+                          : 'Everything cleared, including categories.',
+                    })
+                  }
+                  setConfirming(null)
                 }}
               >
-                Yes, delete everything
+                {confirming === 'example' ? 'Load example data' : 'Yes, delete it'}
               </Button>
-              <Button variant="secondary" onClick={() => setConfirming(false)}>
+              <Button variant="secondary" onClick={() => setConfirming(null)}>
                 Cancel
               </Button>
             </div>

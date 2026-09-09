@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { PageId } from '../App'
+import { MonthlyFillGrid } from '../components/MonthlyFillGrid'
 import {
   ActionNote,
   Badge,
@@ -116,20 +117,7 @@ export function Budget({ goTo }: { goTo: (p: PageId) => void }) {
           }
           className="border-sky-200 bg-sky-50/40"
         >
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {pending.map((item) => (
-              <label key={item.id} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2.5">
-                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-slate-700">{item.name}</span>
-                <MoneyInput
-                  value={null}
-                  placeholder={String(item.budgeted || 0)}
-                  onChange={(n) => setMonthlyEntry(item.id, n)}
-                  className="w-28"
-                  aria-label={`${item.name} total for ${monthLabel(month)}`}
-                />
-              </label>
-            ))}
-          </div>
+          <MonthlyFillGrid />
         </Card>
       )}
 

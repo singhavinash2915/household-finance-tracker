@@ -13,12 +13,12 @@ import {
 } from 'recharts'
 import type { PageId } from '../App'
 import { IncomeCard } from '../components/IncomeCard'
+import { MonthlyFillGrid } from '../components/MonthlyFillGrid'
 import {
   ActionNote,
   Badge,
   Button,
   Card,
-  MoneyInput,
   PageHeader,
   ProgressBar,
   StatCard,
@@ -38,7 +38,7 @@ import { BUCKETS, monthChecklist, monthMetrics, pendingMonthlyItems } from '../l
 import { useStore } from '../lib/store'
 
 export function Dashboard({ goTo }: { goTo: (p: PageId) => void }) {
-  const { data, update, month } = useStore()
+  const { data, month } = useStore()
   const m = monthMetrics(data, month)
   const checklist = monthChecklist(data, month)
   const pending = pendingMonthlyItems(data, month)
@@ -87,7 +87,7 @@ export function Dashboard({ goTo }: { goTo: (p: PageId) => void }) {
         />
         <ul className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {checklist.map((c) => (
-            <li key={c.id}>
+            <li key={c.id} className="min-w-0">
               <button
                 type="button"
                 onClick={() => goTo(c.page as PageId)}
@@ -103,7 +103,7 @@ export function Dashboard({ goTo }: { goTo: (p: PageId) => void }) {
                 >
                   {c.done ? '✓' : '!'}
                 </span>
-                <span className="min-w-0">
+                <span className="min-w-0 flex-1">
                   <span className="block text-[13px] font-medium text-slate-800">{c.label}</span>
                   <span className="block truncate text-[11px] text-slate-500">{c.detail}</span>
                 </span>
@@ -123,28 +123,7 @@ export function Dashboard({ goTo }: { goTo: (p: PageId) => void }) {
             </Button>
           }
         >
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {pending.slice(0, 6).map((item) => (
-              <label key={item.id} className="flex items-center gap-2 rounded-xl border border-slate-200 p-2.5">
-                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-slate-700">{item.name}</span>
-                <MoneyInput
-                  value={null}
-                  placeholder={String(item.budgeted || 0)}
-                  onChange={(n) =>
-                    update((d) => ({
-                      ...d,
-                      monthlyEntries: {
-                        ...d.monthlyEntries,
-                        [month]: { ...(d.monthlyEntries[month] ?? {}), [item.id]: n },
-                      },
-                    }))
-                  }
-                  className="w-28"
-                  aria-label={`${item.name} total`}
-                />
-              </label>
-            ))}
-          </div>
+          <MonthlyFillGrid limit={6} />
         </Card>
       )}
 

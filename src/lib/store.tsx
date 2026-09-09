@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { loadData, normalise, saveData } from './storage'
-import { seedData } from './seed'
+import { bareData, emptyData, seedData } from './seed'
 import { currentMonthKey } from './format'
 import type { AppData } from './types'
 
@@ -20,7 +20,10 @@ interface StoreValue {
   /** Any edit clears the "example data" flag. */
   update: (fn: Updater) => void
   replace: (next: AppData) => void
-  reset: () => void
+  /** Wipe to a blank slate. `keepCategories` retains the category skeleton. */
+  startFresh: (keepCategories: boolean) => void
+  /** Put the example household back, for exploring the app. */
+  loadExample: () => void
   saving: boolean
   storageBlocked: boolean
   /** The month every page is looking at. Owned here so pages stay in sync. */
@@ -67,7 +70,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const replace = useCallback((next: AppData) => setData(normalise(next)), [])
-  const reset = useCallback(() => setData(seedData()), [])
+  const startFresh = useCallback((keepCategories: boolean) => {
+    setData(keepCategories ? emptyData() : bareData())
+  }, [])
+  const loadExample = useCallback(() => setData(seedData()), [])
 
   const notify = useCallback((message: string) => {
     setToast(message)
@@ -76,8 +82,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ data, update, replace, reset, saving, storageBlocked, month, setMonth, toast, notify }),
-    [data, update, replace, reset, saving, storageBlocked, month, toast, notify],
+    () => ({
+      data,
+      update,
+      replace,
+      startFresh,
+      loadExample,
+      saving,
+      storageBlocked,
+      month,
+      setMonth,
+      toast,
+      notify,
+    }),
+    [data, update, replace, startFresh, loadExample, saving, storageBlocked, month, toast, notify],
   )
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
